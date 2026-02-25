@@ -1,0 +1,492 @@
+[
+  {
+    "rank": 1,
+    "name": "Grupo Menos É Mais",
+    "aparicoes_top50": 7,
+    "albums": [
+      {
+        "name": "Churrasquinho 4 (Ao Vivo)",
+        "release_date": "2025-12-11",
+        "total_tracks": 0,
+        "deezer_url": "https://www.deezer.com/album/869542502",
+        "links": {
+          "spotify": "https://open.spotify.com/search/Grupo%20Menos%20%C3%89%20Mais%20Churrasquinho%204%20%28Ao%20Vivo%29",
+          "deezer": "https://www.deezer.com/album/869542502",
+          "youtube_music": "https://music.youtube.com/search?q=Grupo%20Menos%20%C3%89%20Mais%20Churrasquinho%204%20%28Ao%20Vivo%29",
+          "suamusica": "https://www.suamusica.com.br/search?q=Grupo%20Menos%20%C3%89%20Mais",
+          "apple_music": "https://music.apple.com/br/search?term=Grupo%20Menos%20%C3%89%20Mais%20Churrasquinho%204%20%28Ao%20Vivo%29",
+          "busca_manual": {
+            "google": "https://www.google.com/search?q=Grupo%20Menos%20%C3%89%20Mais%20Churrasquinho%204%20%28Ao%20Vivo%29+download+mp3",
+            "youtube": "https://www.youtube.com/results?search_query=Grupo%20Menos%20%C3%89%20Mais%20Churrasquinho%204%20%28Ao%20Vivo%29%20%C3%A1lbum%20completo"
+          }
+        },
+        "cli_commands": {
+          "spotdl": "spotdl download \"Grupo Menos É Mais Churrasquinho 4 (Ao Vivo)\"",
+          "yt_dlp": "yt-dlp -x --audio-format mp3 ytsearch10:\"Grupo Menos É Mais Churrasquinho 4 (Ao Vivo)\""
+        }
+      },
+      {
+        "name": "As Melhores Menos é Mais - 2026 (Ao Vivo)",
+        "release_date": "2025-12-09",
+        "total_tracks": 0,
+        "deezer_url": "https://www.deezer.com/album/876254212",
+        "links": {
+          "spotify": "https://open.spotify.com/search/Grupo%20Menos%20%C3%89%20Mais%20As%20Melhores%20Menos%20%C3%A9%20Mais%20-%202026%20%28Ao%20Vivo%29",
+          "deezer": "https://www.deezer.com/album/876254212",
+          "youtube_music": "https://music.youtube.com/search?q=Grupo%20Menos%20%C3%89%20Mais%20As%20Melhores%20Menos%20%C3%A9%20Mais%20-%202026%20%28Ao%20Vivo%29",
+          "suamusica": "https://www.suamusica.com.br/search?q=Grupo%20Menos%20%C3%89%20Mais",
+          "apple_music": "https://music.apple.com/br/search?term=Grupo%20Menos%20%C3%89%20Mais%20As%20Melhores%20Menos%20%C3%A9%20Mais%20-%202026%20%28Ao%20Vivo%29",
+          "busca_manual": {
+            "google": "https://www.google.com/search?q=Grupo%20Menos%20%C3%89%20Mais%20As%20Melhores%20Menos%20%C3%A9%20Mais%20-%202026%20%28Ao%20Vivo%29+download+mp3",
+            "youtube": "https://www.youtube.com/results?search_query=Grupo%20Menos%20%C3%89%20Mais%20As%20Melhores%20Menos%20%C3%A9%20Mais%20-%202026%20%28Ao%20Vivo%29%20%C3%A1lbum%20completo"
+          }
+        },
+        "cli_commands": {
+          "spotdl": "spotdl download \"Grupo Menos É Mais As Melhores Menos é Mais - 2026 (Ao Vivo)\"",
+          "yt_dlp": "yt-dlp -x --audio-format mp3 ytsearch10:\"Grupo Menos É Mais As Melhores Menos é Mais - 2026 (Ao Vivo)\""
+        }
+      }
+    ]
+  },
+  {
+    "rank": 2,
+    "name": "Henrique & Juliano",
+    "aparicoes_top50": 6,
+    "albums": [
+      {
+        "name": "Retrospectiva 2025 - Henrique & Juliano",
+        "release_date": "2025-12-16",
+        "total_tracks": 0,
+        "deezer_url": "https://www.deezer.com/album/873310672",
+        "links": {
+          "spotify": "https://open.spotify.com/search/Henrique%20%26%20Juliano%20Retrospectiva%202025%20-%20Henrique%20%26%20Juliano",
+          "deezer": "https://www.deezer.com/album/873310672",
+          "youtube_music": "https://music.youtube.com/search?q=Henrique%20%26%20Juliano%20Retrospectiva%202025%20-%20Henrique%20%26%20Juliano",
+          "suamusica": "https://www.suamusica.com.br/search?q=Henrique%20%26%20Juliano",
+          "apple_music": "https://music.apple.com/br/search?term=Henrique%20%26%20Juliano%20Retrospectiva%202025%20-%20Henrique%20%26%20Juliano",
+          "busca_manual": {
+            "google": "https://www.google.com/search?q=Henrique%20%26%20Juliano%20Retrospectiva%202025%20-%20Henrique%20%26%20Juliano+download+mp3",
+            "youtube": "https://www.youtube.com/results?search_query=Henrique%20%26%20Juliano%20Retrospectiva%202025%20-%20Henrique%20%26%20Juliano%20%C3%A1lbum%20completo"
+          }
+        },
+        "cli_commands": {
+          "spotdl": "spotdl download \"Henrique & Juliano Retrospectiva 2025 - Henrique & Juliano\"",
+          "yt_dlp": "yt-dlp -x --audio-format mp3 ytsearch10:\"Henrique & Juliano Retrospectiva 2025 - Henrique & Juliano\""
+        }
+      },
+      {
+        "name": "Última Saudade - Henrique e Juliano",
+        "release_date": "2025-10-30",
+        "total_tracks": 0,
+        "deezer_url": "https://www.deezer.com/album/842752872",
+        "links": {
+          "spotify": "https://open.spotify.com/search/Henrique%20%26%20Juliano%20%C3%9Altima%20Saudade%20-%20Henrique%C2%A0e%C2%A0Juliano",
+          "deezer": "https://www.deezer.com/album/842752872",
+          "youtube_music": "https://music.youtube.com/search?q=Henrique%20%26%20Juliano%20%C3%9Altima%20Saudade%20-%20Henrique%C2%A0e%C2%A0Juliano",
+          "suamusica": "https://www.suamusica.com.br/search?q=Henrique%20%26%20Juliano",
+          "apple_music": "https://music.apple.com/br/search?term=Henrique%20%26%20Juliano%20%C3%9Altima%20Saudade%20-%20Henrique%C2%A0e%C2%A0Juliano",
+          "busca_manual": {
+            "google": "https://www.google.com/search?q=Henrique%20%26%20Juliano%20%C3%9Altima%20Saudade%20-%20Henrique%C2%A0e%C2%A0Juliano+download+mp3",
+            "youtube": "https://www.youtube.com/results?search_query=Henrique%20%26%20Juliano%20%C3%9Altima%20Saudade%20-%20Henrique%C2%A0e%C2%A0Juliano%20%C3%A1lbum%20completo"
+          }
+        },
+        "cli_commands": {
+          "spotdl": "spotdl download \"Henrique & Juliano Última Saudade - Henrique e Juliano\"",
+          "yt_dlp": "yt-dlp -x --audio-format mp3 ytsearch10:\"Henrique & Juliano Última Saudade - Henrique e Juliano\""
+        }
+      }
+    ]
+  },
+  {
+    "rank": 3,
+    "name": "Panda",
+    "aparicoes_top50": 6,
+    "albums": [
+      {
+        "name": "Cê Tá Doido - Fortaleza Ao Vivo",
+        "release_date": "2026-02-05",
+        "total_tracks": 0,
+        "deezer_url": "https://www.deezer.com/album/905848022",
+        "links": {
+          "spotify": "https://open.spotify.com/search/Panda%20C%C3%AA%20T%C3%A1%20Doido%20-%20Fortaleza%20Ao%20Vivo",
+          "deezer": "https://www.deezer.com/album/905848022",
+          "youtube_music": "https://music.youtube.com/search?q=Panda%20C%C3%AA%20T%C3%A1%20Doido%20-%20Fortaleza%20Ao%20Vivo",
+          "suamusica": "https://www.suamusica.com.br/search?q=Panda",
+          "apple_music": "https://music.apple.com/br/search?term=Panda%20C%C3%AA%20T%C3%A1%20Doido%20-%20Fortaleza%20Ao%20Vivo",
+          "busca_manual": {
+            "google": "https://www.google.com/search?q=Panda%20C%C3%AA%20T%C3%A1%20Doido%20-%20Fortaleza%20Ao%20Vivo+download+mp3",
+            "youtube": "https://www.youtube.com/results?search_query=Panda%20C%C3%AA%20T%C3%A1%20Doido%20-%20Fortaleza%20Ao%20Vivo%20%C3%A1lbum%20completo"
+          }
+        },
+        "cli_commands": {
+          "spotdl": "spotdl download \"Panda Cê Tá Doido - Fortaleza Ao Vivo\"",
+          "yt_dlp": "yt-dlp -x --audio-format mp3 ytsearch10:\"Panda Cê Tá Doido - Fortaleza Ao Vivo\""
+        }
+      },
+      {
+        "name": "O Jeito é Beber (Ao Vivo)",
+        "release_date": "2026-01-08",
+        "total_tracks": 0,
+        "deezer_url": "https://www.deezer.com/album/879474602",
+        "links": {
+          "spotify": "https://open.spotify.com/search/Panda%20O%20Jeito%20%C3%A9%20Beber%20%28Ao%20Vivo%29",
+          "deezer": "https://www.deezer.com/album/879474602",
+          "youtube_music": "https://music.youtube.com/search?q=Panda%20O%20Jeito%20%C3%A9%20Beber%20%28Ao%20Vivo%29",
+          "suamusica": "https://www.suamusica.com.br/search?q=Panda",
+          "apple_music": "https://music.apple.com/br/search?term=Panda%20O%20Jeito%20%C3%A9%20Beber%20%28Ao%20Vivo%29",
+          "busca_manual": {
+            "google": "https://www.google.com/search?q=Panda%20O%20Jeito%20%C3%A9%20Beber%20%28Ao%20Vivo%29+download+mp3",
+            "youtube": "https://www.youtube.com/results?search_query=Panda%20O%20Jeito%20%C3%A9%20Beber%20%28Ao%20Vivo%29%20%C3%A1lbum%20completo"
+          }
+        },
+        "cli_commands": {
+          "spotdl": "spotdl download \"Panda O Jeito é Beber (Ao Vivo)\"",
+          "yt_dlp": "yt-dlp -x --audio-format mp3 ytsearch10:\"Panda O Jeito é Beber (Ao Vivo)\""
+        }
+      }
+    ]
+  },
+  {
+    "rank": 4,
+    "name": "Jorge & Mateus",
+    "aparicoes_top50": 6,
+    "albums": [
+      {
+        "name": "Check-In (Ao Vivo)",
+        "release_date": "2024-11-07",
+        "total_tracks": 0,
+        "deezer_url": "https://www.deezer.com/album/662905781",
+        "links": {
+          "spotify": "https://open.spotify.com/search/Jorge%20%26%20Mateus%20Check-In%20%28Ao%20Vivo%29",
+          "deezer": "https://www.deezer.com/album/662905781",
+          "youtube_music": "https://music.youtube.com/search?q=Jorge%20%26%20Mateus%20Check-In%20%28Ao%20Vivo%29",
+          "suamusica": "https://www.suamusica.com.br/search?q=Jorge%20%26%20Mateus",
+          "apple_music": "https://music.apple.com/br/search?term=Jorge%20%26%20Mateus%20Check-In%20%28Ao%20Vivo%29",
+          "busca_manual": {
+            "google": "https://www.google.com/search?q=Jorge%20%26%20Mateus%20Check-In%20%28Ao%20Vivo%29+download+mp3",
+            "youtube": "https://www.youtube.com/results?search_query=Jorge%20%26%20Mateus%20Check-In%20%28Ao%20Vivo%29%20%C3%A1lbum%20completo"
+          }
+        },
+        "cli_commands": {
+          "spotdl": "spotdl download \"Jorge & Mateus Check-In (Ao Vivo)\"",
+          "yt_dlp": "yt-dlp -x --audio-format mp3 ytsearch10:\"Jorge & Mateus Check-In (Ao Vivo)\""
+        }
+      },
+      {
+        "name": "Os Grandes Sucessos de Jorge & Mateus",
+        "release_date": "2023-05-25",
+        "total_tracks": 0,
+        "deezer_url": "https://www.deezer.com/album/442495027",
+        "links": {
+          "spotify": "https://open.spotify.com/search/Jorge%20%26%20Mateus%20Os%20Grandes%20Sucessos%20de%20Jorge%20%26%20Mateus",
+          "deezer": "https://www.deezer.com/album/442495027",
+          "youtube_music": "https://music.youtube.com/search?q=Jorge%20%26%20Mateus%20Os%20Grandes%20Sucessos%20de%20Jorge%20%26%20Mateus",
+          "suamusica": "https://www.suamusica.com.br/search?q=Jorge%20%26%20Mateus",
+          "apple_music": "https://music.apple.com/br/search?term=Jorge%20%26%20Mateus%20Os%20Grandes%20Sucessos%20de%20Jorge%20%26%20Mateus",
+          "busca_manual": {
+            "google": "https://www.google.com/search?q=Jorge%20%26%20Mateus%20Os%20Grandes%20Sucessos%20de%20Jorge%20%26%20Mateus+download+mp3",
+            "youtube": "https://www.youtube.com/results?search_query=Jorge%20%26%20Mateus%20Os%20Grandes%20Sucessos%20de%20Jorge%20%26%20Mateus%20%C3%A1lbum%20completo"
+          }
+        },
+        "cli_commands": {
+          "spotdl": "spotdl download \"Jorge & Mateus Os Grandes Sucessos de Jorge & Mateus\"",
+          "yt_dlp": "yt-dlp -x --audio-format mp3 ytsearch10:\"Jorge & Mateus Os Grandes Sucessos de Jorge & Mateus\""
+        }
+      }
+    ]
+  },
+  {
+    "rank": 5,
+    "name": "Gusttavo Lima",
+    "aparicoes_top50": 5,
+    "albums": [
+      {
+        "name": "Feito À Mão Vol. 01",
+        "release_date": "2025-08-13",
+        "total_tracks": 0,
+        "deezer_url": "https://www.deezer.com/album/800690751",
+        "links": {
+          "spotify": "https://open.spotify.com/search/Gusttavo%20Lima%20Feito%20%C3%80%20M%C3%A3o%20Vol.%2001",
+          "deezer": "https://www.deezer.com/album/800690751",
+          "youtube_music": "https://music.youtube.com/search?q=Gusttavo%20Lima%20Feito%20%C3%80%20M%C3%A3o%20Vol.%2001",
+          "suamusica": "https://www.suamusica.com.br/search?q=Gusttavo%20Lima",
+          "apple_music": "https://music.apple.com/br/search?term=Gusttavo%20Lima%20Feito%20%C3%80%20M%C3%A3o%20Vol.%2001",
+          "busca_manual": {
+            "google": "https://www.google.com/search?q=Gusttavo%20Lima%20Feito%20%C3%80%20M%C3%A3o%20Vol.%2001+download+mp3",
+            "youtube": "https://www.youtube.com/results?search_query=Gusttavo%20Lima%20Feito%20%C3%80%20M%C3%A3o%20Vol.%2001%20%C3%A1lbum%20completo"
+          }
+        },
+        "cli_commands": {
+          "spotdl": "spotdl download \"Gusttavo Lima Feito À Mão Vol. 01\"",
+          "yt_dlp": "yt-dlp -x --audio-format mp3 ytsearch10:\"Gusttavo Lima Feito À Mão Vol. 01\""
+        }
+      },
+      {
+        "name": "Embaixador no Particular",
+        "release_date": "2025-06-09",
+        "total_tracks": 0,
+        "deezer_url": "https://www.deezer.com/album/766904481",
+        "links": {
+          "spotify": "https://open.spotify.com/search/Gusttavo%20Lima%20Embaixador%20no%20Particular",
+          "deezer": "https://www.deezer.com/album/766904481",
+          "youtube_music": "https://music.youtube.com/search?q=Gusttavo%20Lima%20Embaixador%20no%20Particular",
+          "suamusica": "https://www.suamusica.com.br/search?q=Gusttavo%20Lima",
+          "apple_music": "https://music.apple.com/br/search?term=Gusttavo%20Lima%20Embaixador%20no%20Particular",
+          "busca_manual": {
+            "google": "https://www.google.com/search?q=Gusttavo%20Lima%20Embaixador%20no%20Particular+download+mp3",
+            "youtube": "https://www.youtube.com/results?search_query=Gusttavo%20Lima%20Embaixador%20no%20Particular%20%C3%A1lbum%20completo"
+          }
+        },
+        "cli_commands": {
+          "spotdl": "spotdl download \"Gusttavo Lima Embaixador no Particular\"",
+          "yt_dlp": "yt-dlp -x --audio-format mp3 ytsearch10:\"Gusttavo Lima Embaixador no Particular\""
+        }
+      }
+    ]
+  },
+  {
+    "rank": 6,
+    "name": "Clayton & Romário",
+    "aparicoes_top50": 4,
+    "albums": [
+      {
+        "name": "Juntô Deu Moda, Vol. 2 (Ao Vivo)",
+        "release_date": "2025-12-18",
+        "total_tracks": 0,
+        "deezer_url": "https://www.deezer.com/album/874904932",
+        "links": {
+          "spotify": "https://open.spotify.com/search/Clayton%20%26%20Rom%C3%A1rio%20Junt%C3%B4%20Deu%20Moda%2C%20Vol.%202%20%28Ao%20Vivo%29",
+          "deezer": "https://www.deezer.com/album/874904932",
+          "youtube_music": "https://music.youtube.com/search?q=Clayton%20%26%20Rom%C3%A1rio%20Junt%C3%B4%20Deu%20Moda%2C%20Vol.%202%20%28Ao%20Vivo%29",
+          "suamusica": "https://www.suamusica.com.br/search?q=Clayton%20%26%20Rom%C3%A1rio",
+          "apple_music": "https://music.apple.com/br/search?term=Clayton%20%26%20Rom%C3%A1rio%20Junt%C3%B4%20Deu%20Moda%2C%20Vol.%202%20%28Ao%20Vivo%29",
+          "busca_manual": {
+            "google": "https://www.google.com/search?q=Clayton%20%26%20Rom%C3%A1rio%20Junt%C3%B4%20Deu%20Moda%2C%20Vol.%202%20%28Ao%20Vivo%29+download+mp3",
+            "youtube": "https://www.youtube.com/results?search_query=Clayton%20%26%20Rom%C3%A1rio%20Junt%C3%B4%20Deu%20Moda%2C%20Vol.%202%20%28Ao%20Vivo%29%20%C3%A1lbum%20completo"
+          }
+        },
+        "cli_commands": {
+          "spotdl": "spotdl download \"Clayton & Romário Juntô Deu Moda, Vol. 2 (Ao Vivo)\"",
+          "yt_dlp": "yt-dlp -x --audio-format mp3 ytsearch10:\"Clayton & Romário Juntô Deu Moda, Vol. 2 (Ao Vivo)\""
+        }
+      },
+      {
+        "name": "Juntô Deu Moda, Vol. 1 (Ao Vivo)",
+        "release_date": "2025-11-27",
+        "total_tracks": 0,
+        "deezer_url": "https://www.deezer.com/album/859319702",
+        "links": {
+          "spotify": "https://open.spotify.com/search/Clayton%20%26%20Rom%C3%A1rio%20Junt%C3%B4%20Deu%20Moda%2C%20Vol.%201%20%28Ao%20Vivo%29",
+          "deezer": "https://www.deezer.com/album/859319702",
+          "youtube_music": "https://music.youtube.com/search?q=Clayton%20%26%20Rom%C3%A1rio%20Junt%C3%B4%20Deu%20Moda%2C%20Vol.%201%20%28Ao%20Vivo%29",
+          "suamusica": "https://www.suamusica.com.br/search?q=Clayton%20%26%20Rom%C3%A1rio",
+          "apple_music": "https://music.apple.com/br/search?term=Clayton%20%26%20Rom%C3%A1rio%20Junt%C3%B4%20Deu%20Moda%2C%20Vol.%201%20%28Ao%20Vivo%29",
+          "busca_manual": {
+            "google": "https://www.google.com/search?q=Clayton%20%26%20Rom%C3%A1rio%20Junt%C3%B4%20Deu%20Moda%2C%20Vol.%201%20%28Ao%20Vivo%29+download+mp3",
+            "youtube": "https://www.youtube.com/results?search_query=Clayton%20%26%20Rom%C3%A1rio%20Junt%C3%B4%20Deu%20Moda%2C%20Vol.%201%20%28Ao%20Vivo%29%20%C3%A1lbum%20completo"
+          }
+        },
+        "cli_commands": {
+          "spotdl": "spotdl download \"Clayton & Romário Juntô Deu Moda, Vol. 1 (Ao Vivo)\"",
+          "yt_dlp": "yt-dlp -x --audio-format mp3 ytsearch10:\"Clayton & Romário Juntô Deu Moda, Vol. 1 (Ao Vivo)\""
+        }
+      }
+    ]
+  },
+  {
+    "rank": 7,
+    "name": "Simone Mendes",
+    "aparicoes_top50": 4,
+    "albums": [
+      {
+        "name": "Simone Mendes - Quando A Luz Acende",
+        "release_date": "2026-02-05",
+        "total_tracks": 0,
+        "deezer_url": "https://www.deezer.com/album/907299042",
+        "links": {
+          "spotify": "https://open.spotify.com/search/Simone%20Mendes%20Simone%20Mendes%20-%20Quando%20A%20Luz%20Acende",
+          "deezer": "https://www.deezer.com/album/907299042",
+          "youtube_music": "https://music.youtube.com/search?q=Simone%20Mendes%20Simone%20Mendes%20-%20Quando%20A%20Luz%20Acende",
+          "suamusica": "https://www.suamusica.com.br/search?q=Simone%20Mendes",
+          "apple_music": "https://music.apple.com/br/search?term=Simone%20Mendes%20Simone%20Mendes%20-%20Quando%20A%20Luz%20Acende",
+          "busca_manual": {
+            "google": "https://www.google.com/search?q=Simone%20Mendes%20Simone%20Mendes%20-%20Quando%20A%20Luz%20Acende+download+mp3",
+            "youtube": "https://www.youtube.com/results?search_query=Simone%20Mendes%20Simone%20Mendes%20-%20Quando%20A%20Luz%20Acende%20%C3%A1lbum%20completo"
+          }
+        },
+        "cli_commands": {
+          "spotdl": "spotdl download \"Simone Mendes Simone Mendes - Quando A Luz Acende\"",
+          "yt_dlp": "yt-dlp -x --audio-format mp3 ytsearch10:\"Simone Mendes Simone Mendes - Quando A Luz Acende\""
+        }
+      },
+      {
+        "name": "Cantando Sua História 2 (Ao Vivo)",
+        "release_date": "2025-12-12",
+        "total_tracks": 0,
+        "deezer_url": "https://www.deezer.com/album/870693312",
+        "links": {
+          "spotify": "https://open.spotify.com/search/Simone%20Mendes%20Cantando%20Sua%20Hist%C3%B3ria%202%20%28Ao%20Vivo%29",
+          "deezer": "https://www.deezer.com/album/870693312",
+          "youtube_music": "https://music.youtube.com/search?q=Simone%20Mendes%20Cantando%20Sua%20Hist%C3%B3ria%202%20%28Ao%20Vivo%29",
+          "suamusica": "https://www.suamusica.com.br/search?q=Simone%20Mendes",
+          "apple_music": "https://music.apple.com/br/search?term=Simone%20Mendes%20Cantando%20Sua%20Hist%C3%B3ria%202%20%28Ao%20Vivo%29",
+          "busca_manual": {
+            "google": "https://www.google.com/search?q=Simone%20Mendes%20Cantando%20Sua%20Hist%C3%B3ria%202%20%28Ao%20Vivo%29+download+mp3",
+            "youtube": "https://www.youtube.com/results?search_query=Simone%20Mendes%20Cantando%20Sua%20Hist%C3%B3ria%202%20%28Ao%20Vivo%29%20%C3%A1lbum%20completo"
+          }
+        },
+        "cli_commands": {
+          "spotdl": "spotdl download \"Simone Mendes Cantando Sua História 2 (Ao Vivo)\"",
+          "yt_dlp": "yt-dlp -x --audio-format mp3 ytsearch10:\"Simone Mendes Cantando Sua História 2 (Ao Vivo)\""
+        }
+      }
+    ]
+  },
+  {
+    "rank": 8,
+    "name": "Diego & Victor Hugo",
+    "aparicoes_top50": 3,
+    "albums": [
+      {
+        "name": "Ao Vivo Em Uberlândia",
+        "release_date": "2025-11-20",
+        "total_tracks": 0,
+        "deezer_url": "https://www.deezer.com/album/854040692",
+        "links": {
+          "spotify": "https://open.spotify.com/search/Diego%20%26%20Victor%20Hugo%20Ao%20Vivo%20Em%20Uberl%C3%A2ndia",
+          "deezer": "https://www.deezer.com/album/854040692",
+          "youtube_music": "https://music.youtube.com/search?q=Diego%20%26%20Victor%20Hugo%20Ao%20Vivo%20Em%20Uberl%C3%A2ndia",
+          "suamusica": "https://www.suamusica.com.br/search?q=Diego%20%26%20Victor%20Hugo",
+          "apple_music": "https://music.apple.com/br/search?term=Diego%20%26%20Victor%20Hugo%20Ao%20Vivo%20Em%20Uberl%C3%A2ndia",
+          "busca_manual": {
+            "google": "https://www.google.com/search?q=Diego%20%26%20Victor%20Hugo%20Ao%20Vivo%20Em%20Uberl%C3%A2ndia+download+mp3",
+            "youtube": "https://www.youtube.com/results?search_query=Diego%20%26%20Victor%20Hugo%20Ao%20Vivo%20Em%20Uberl%C3%A2ndia%20%C3%A1lbum%20completo"
+          }
+        },
+        "cli_commands": {
+          "spotdl": "spotdl download \"Diego & Victor Hugo Ao Vivo Em Uberlândia\"",
+          "yt_dlp": "yt-dlp -x --audio-format mp3 ytsearch10:\"Diego & Victor Hugo Ao Vivo Em Uberlândia\""
+        }
+      },
+      {
+        "name": "Ao Vivo Em Uberlândia Vol. 02",
+        "release_date": "2025-08-07",
+        "total_tracks": 0,
+        "deezer_url": "https://www.deezer.com/album/804335111",
+        "links": {
+          "spotify": "https://open.spotify.com/search/Diego%20%26%20Victor%20Hugo%20Ao%20Vivo%20Em%20Uberl%C3%A2ndia%20Vol.%2002",
+          "deezer": "https://www.deezer.com/album/804335111",
+          "youtube_music": "https://music.youtube.com/search?q=Diego%20%26%20Victor%20Hugo%20Ao%20Vivo%20Em%20Uberl%C3%A2ndia%20Vol.%2002",
+          "suamusica": "https://www.suamusica.com.br/search?q=Diego%20%26%20Victor%20Hugo",
+          "apple_music": "https://music.apple.com/br/search?term=Diego%20%26%20Victor%20Hugo%20Ao%20Vivo%20Em%20Uberl%C3%A2ndia%20Vol.%2002",
+          "busca_manual": {
+            "google": "https://www.google.com/search?q=Diego%20%26%20Victor%20Hugo%20Ao%20Vivo%20Em%20Uberl%C3%A2ndia%20Vol.%2002+download+mp3",
+            "youtube": "https://www.youtube.com/results?search_query=Diego%20%26%20Victor%20Hugo%20Ao%20Vivo%20Em%20Uberl%C3%A2ndia%20Vol.%2002%20%C3%A1lbum%20completo"
+          }
+        },
+        "cli_commands": {
+          "spotdl": "spotdl download \"Diego & Victor Hugo Ao Vivo Em Uberlândia Vol. 02\"",
+          "yt_dlp": "yt-dlp -x --audio-format mp3 ytsearch10:\"Diego & Victor Hugo Ao Vivo Em Uberlândia Vol. 02\""
+        }
+      }
+    ]
+  },
+  {
+    "rank": 9,
+    "name": "Matheus & Kauan",
+    "aparicoes_top50": 3,
+    "albums": [
+      {
+        "name": "Matheus & Kauan Especial Praiou",
+        "release_date": "2025-09-15",
+        "total_tracks": 0,
+        "deezer_url": "https://www.deezer.com/album/817674461",
+        "links": {
+          "spotify": "https://open.spotify.com/search/Matheus%20%26%20Kauan%20Matheus%20%26%20Kauan%20Especial%20Praiou",
+          "deezer": "https://www.deezer.com/album/817674461",
+          "youtube_music": "https://music.youtube.com/search?q=Matheus%20%26%20Kauan%20Matheus%20%26%20Kauan%20Especial%20Praiou",
+          "suamusica": "https://www.suamusica.com.br/search?q=Matheus%20%26%20Kauan",
+          "apple_music": "https://music.apple.com/br/search?term=Matheus%20%26%20Kauan%20Matheus%20%26%20Kauan%20Especial%20Praiou",
+          "busca_manual": {
+            "google": "https://www.google.com/search?q=Matheus%20%26%20Kauan%20Matheus%20%26%20Kauan%20Especial%20Praiou+download+mp3",
+            "youtube": "https://www.youtube.com/results?search_query=Matheus%20%26%20Kauan%20Matheus%20%26%20Kauan%20Especial%20Praiou%20%C3%A1lbum%20completo"
+          }
+        },
+        "cli_commands": {
+          "spotdl": "spotdl download \"Matheus & Kauan Matheus & Kauan Especial Praiou\"",
+          "yt_dlp": "yt-dlp -x --audio-format mp3 ytsearch10:\"Matheus & Kauan Matheus & Kauan Especial Praiou\""
+        }
+      },
+      {
+        "name": "Se chorar me der marcas de expressão…",
+        "release_date": "2025-05-22",
+        "total_tracks": 0,
+        "deezer_url": "https://www.deezer.com/album/758069641",
+        "links": {
+          "spotify": "https://open.spotify.com/search/Matheus%20%26%20Kauan%20Se%20chorar%20me%20der%20marcas%20de%20express%C3%A3o%E2%80%A6",
+          "deezer": "https://www.deezer.com/album/758069641",
+          "youtube_music": "https://music.youtube.com/search?q=Matheus%20%26%20Kauan%20Se%20chorar%20me%20der%20marcas%20de%20express%C3%A3o%E2%80%A6",
+          "suamusica": "https://www.suamusica.com.br/search?q=Matheus%20%26%20Kauan",
+          "apple_music": "https://music.apple.com/br/search?term=Matheus%20%26%20Kauan%20Se%20chorar%20me%20der%20marcas%20de%20express%C3%A3o%E2%80%A6",
+          "busca_manual": {
+            "google": "https://www.google.com/search?q=Matheus%20%26%20Kauan%20Se%20chorar%20me%20der%20marcas%20de%20express%C3%A3o%E2%80%A6+download+mp3",
+            "youtube": "https://www.youtube.com/results?search_query=Matheus%20%26%20Kauan%20Se%20chorar%20me%20der%20marcas%20de%20express%C3%A3o%E2%80%A6%20%C3%A1lbum%20completo"
+          }
+        },
+        "cli_commands": {
+          "spotdl": "spotdl download \"Matheus & Kauan Se chorar me der marcas de expressão…\"",
+          "yt_dlp": "yt-dlp -x --audio-format mp3 ytsearch10:\"Matheus & Kauan Se chorar me der marcas de expressão…\""
+        }
+      }
+    ]
+  },
+  {
+    "rank": 10,
+    "name": "Bad Bunny",
+    "aparicoes_top50": 3,
+    "albums": [
+      {
+        "name": "DeBÍ TiRAR MáS FOToS",
+        "release_date": "2025-01-05",
+        "total_tracks": 0,
+        "deezer_url": "https://www.deezer.com/album/693008911",
+        "links": {
+          "spotify": "https://open.spotify.com/search/Bad%20Bunny%20DeB%C3%8D%20TiRAR%20M%C3%A1S%20FOToS",
+          "deezer": "https://www.deezer.com/album/693008911",
+          "youtube_music": "https://music.youtube.com/search?q=Bad%20Bunny%20DeB%C3%8D%20TiRAR%20M%C3%A1S%20FOToS",
+          "suamusica": "https://www.suamusica.com.br/search?q=Bad%20Bunny",
+          "apple_music": "https://music.apple.com/br/search?term=Bad%20Bunny%20DeB%C3%8D%20TiRAR%20M%C3%A1S%20FOToS",
+          "busca_manual": {
+            "google": "https://www.google.com/search?q=Bad%20Bunny%20DeB%C3%8D%20TiRAR%20M%C3%A1S%20FOToS+download+mp3",
+            "youtube": "https://www.youtube.com/results?search_query=Bad%20Bunny%20DeB%C3%8D%20TiRAR%20M%C3%A1S%20FOToS%20%C3%A1lbum%20completo"
+          }
+        },
+        "cli_commands": {
+          "spotdl": "spotdl download \"Bad Bunny DeBÍ TiRAR MáS FOToS\"",
+          "yt_dlp": "yt-dlp -x --audio-format mp3 ytsearch10:\"Bad Bunny DeBÍ TiRAR MáS FOToS\""
+        }
+      },
+      {
+        "name": "nadie sabe lo que va a pasar mañana",
+        "release_date": "2023-10-13",
+        "total_tracks": 0,
+        "deezer_url": "https://www.deezer.com/album/499463651",
+        "links": {
+          "spotify": "https://open.spotify.com/search/Bad%20Bunny%20nadie%20sabe%20lo%20que%20va%20a%20pasar%20ma%C3%B1ana",
+          "deezer": "https://www.deezer.com/album/499463651",
+          "youtube_music": "https://music.youtube.com/search?q=Bad%20Bunny%20nadie%20sabe%20lo%20que%20va%20a%20pasar%20ma%C3%B1ana",
+          "suamusica": "https://www.suamusica.com.br/search?q=Bad%20Bunny",
+          "apple_music": "https://music.apple.com/br/search?term=Bad%20Bunny%20nadie%20sabe%20lo%20que%20va%20a%20pasar%20ma%C3%B1ana",
+          "busca_manual": {
+            "google": "https://www.google.com/search?q=Bad%20Bunny%20nadie%20sabe%20lo%20que%20va%20a%20pasar%20ma%C3%B1ana+download+mp3",
+            "youtube": "https://www.youtube.com/results?search_query=Bad%20Bunny%20nadie%20sabe%20lo%20que%20va%20a%20pasar%20ma%C3%B1ana%20%C3%A1lbum%20completo"
+          }
+        },
+        "cli_commands": {
+          "spotdl": "spotdl download \"Bad Bunny nadie sabe lo que va a pasar mañana\"",
+          "yt_dlp": "yt-dlp -x --audio-format mp3 ytsearch10:\"Bad Bunny nadie sabe lo que va a pasar mañana\""
+        }
+      }
+    ]
+  }
+]

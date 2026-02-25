@@ -1,0 +1,8 @@
+# Ignore all files in the musicas directory
+/musicas/*
+
+/.claude/*
+
+/__pycache__/*
+
+/env/*
