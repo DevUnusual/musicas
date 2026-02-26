@@ -12,6 +12,7 @@ Uso:
     python down_albuns.py --interativo               # Escolhe quais baixar
 """
 
+import glob
 import json
 import subprocess
 import sys
@@ -170,6 +171,11 @@ def download_track(artist, track_title, album_name, track_number,
 
     # Formatar numero da faixa com zero-padding
     num_str = f"{track_number:02d}" if track_number else "00"
+
+    # Verificar se ja existe arquivo com esse numero na pasta
+    existing = glob.glob(os.path.join(output_path, f"{num_str}. *.{audio_format}"))
+    if existing:
+        return True, f"Ja existe: {os.path.basename(existing[0])}"
 
     # Template de saida: "01. Nome da Musica.mp3"
     output_template = os.path.join(
