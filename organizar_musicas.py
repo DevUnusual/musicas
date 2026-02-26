@@ -26,6 +26,14 @@ from rich.table import Table
 from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, MofNCompleteColumn
 from rich import box
 
+from utils import (
+    file_hash as _file_hash,
+    sanitize_filename as _sanitize_fn,
+    cleanup_empty_dirs as _cleanup_dirs,
+    format_size,
+    AUDIO_EXTENSIONS,
+)
+
 # ============================================================
 # CONFIG
 # ============================================================

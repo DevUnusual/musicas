@@ -1,0 +1,8 @@
+{
+  "output_dir": "./musicas",
+  "formato": "mp3",
+  "default_export_path": "",
+  "default_scan_path": "./final",
+  "rate_limit_delay": 0.3,
+  "qualidade_minima_kbps": 192
+}

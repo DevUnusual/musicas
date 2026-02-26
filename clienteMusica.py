@@ -8,6 +8,7 @@ Uso:
     python clienteMusica.py
 """
 
+import argparse
 import hashlib
 import json
 import os
@@ -50,6 +51,30 @@ from down_albuns import (
     YTDLP_PATH,
 )
 from organizar_musicas import organizar, scan_audio_files
+from utils import (
+    format_size,
+    format_duration,
+    file_hash,
+    cleanup_empty_dirs,
+    RateLimiter,
+    load_config,
+    save_config,
+    load_historico,
+    save_historico,
+    log_download,
+    AUDIO_EXTENSIONS,
+    logger,
+)
+
+# ── Mutagen (opcional - para editor de tags) ──
+try:
+    import mutagen
+    from mutagen.mp3 import MP3
+    from mutagen.id3 import ID3, TIT2, TPE1, TALB, TCON, APIC, ID3NoHeaderError
+    from mutagen.flac import FLAC
+    HAS_MUTAGEN = True
+except ImportError:
+    HAS_MUTAGEN = False
 
 
 # ============================================================
@@ -76,16 +101,24 @@ class ClienteMusica:
     def __init__(self):
         self.deezer = DeezerClient()
         self.top50_artists = None  # cache: list[(nome, contagem)]
-        self.output_dir = OUTPUT_DIR
-        self.formato = FORMATO
+        self.config = load_config()
+        self.output_dir = self.config.get("output_dir", OUTPUT_DIR)
+        self.formato = self.config.get("formato", FORMATO)
+        self.rate_limiter = RateLimiter(self.config.get("rate_limit_delay", 0.3))
+        self._artist_cache = {}  # cache de busca de artistas Deezer
 
     # --------------------------------------------------------
     # DEEZER HELPERS
     # --------------------------------------------------------
 
     def buscar_artista(self, nome):
-        """Busca artista no Deezer. Retorna dict com id, name, nb_fan ou None."""
+        """Busca artista no Deezer. Retorna dict com id, name, nb_fan ou None.
+        Resultado e cacheado para evitar requests repetidos."""
+        cache_key = nome.lower().strip()
+        if cache_key in self._artist_cache:
+            return self._artist_cache[cache_key]
         try:
+            self.rate_limiter.wait()
             resp = requests.get(
                 f"{DEEZER_API}/search/artist",
                 params={"q": nome, "limit": 1},
@@ -93,14 +126,18 @@ class ClienteMusica:
             )
             items = resp.json().get("data", [])
             if not items:
+                self._artist_cache[cache_key] = None
                 return None
             a = items[0]
-            return {
+            result = {
                 "id": a["id"],
                 "name": a["name"],
                 "nb_fan": a.get("nb_fan", 0),
             }
-        except Exception:
+            self._artist_cache[cache_key] = result
+            return result
+        except Exception as e:
+            logger.error(f"Erro buscando artista '{nome}': {e}")
             return None
 
     def get_top_tracks(self, artist_id, limit=10):
@@ -1697,7 +1734,7 @@ class ClienteMusica:
         else:
             self._shuffle_export()
 
-    def _shuffle_in_place(self):
+    def _shuffle_in_place(self, pasta_preenchida=None):
         """Renomeia arquivos na propria pasta com numeracao aleatoria (instantaneo)."""
         console.print(Panel(
             "[bold]Shuffle no local[/]\n"
@@ -1705,12 +1742,15 @@ class ClienteMusica:
             border_style="green",
         ))
 
-        console.print("  Pasta com as musicas (ex: /Volumes/USB/Musicas):")
-        pasta = input("  > ").strip()
-        if not pasta:
-            console.print("[yellow]Cancelado.[/]")
-            return
-        pasta = os.path.expanduser(pasta)
+        if pasta_preenchida:
+            pasta = pasta_preenchida
+        else:
+            console.print("  Pasta com as musicas (ex: /Volumes/USB/Musicas):")
+            pasta = input("  > ").strip()
+            if not pasta:
+                console.print("[yellow]Cancelado.[/]")
+                return
+            pasta = os.path.expanduser(pasta)
 
         if not os.path.isdir(pasta):
             console.print(f"[red]Pasta '{pasta}' nao encontrada.[/]")
@@ -1886,6 +1926,12 @@ class ClienteMusica:
             if len(files) > 10:
                 console.print(f"    [dim]... +{len(files) - 10} musicas[/]")
             console.print()
+
+        # Re-shuffle?
+        if ok_count > 0:
+            console.print("  Shufflar novamente? ([cyan]s[/]/n)")
+            if input("  > ").strip().lower() in ("s", "sim", "y", "yes"):
+                self._shuffle_in_place(pasta_preenchida=pasta)
 
     def _shuffle_export(self):
         """Exporta musicas embaralhadas de uma pasta para outra."""
@@ -2120,6 +2166,1229 @@ class ClienteMusica:
             console.print()
 
     # --------------------------------------------------------
+    # OPCAO 12: BUSCA NA BIBLIOTECA LOCAL
+    # --------------------------------------------------------
+
+    def opcao_buscar_local(self):
+        console.print(Panel(
+            "[bold]Buscar na biblioteca local[/]\n"
+            "[dim]Pesquisa por artista, musica ou album[/]",
+            border_style="cyan",
+        ))
+
+        default_path = self.config.get("default_scan_path", "./final")
+        console.print(f"  Pasta (Enter = {default_path}):")
+        pasta = input("  > ").strip() or default_path
+        pasta = os.path.expanduser(pasta)
+
+        if not os.path.isdir(pasta):
+            console.print(f"[red]Pasta '{pasta}' nao encontrada.[/]")
+            return
+
+        termo = input("  Buscar: ").strip()
+        if not termo:
+            console.print("[yellow]Cancelado.[/]")
+            return
+
+        files = scan_audio_files(pasta)
+        if not files:
+            console.print(f"[yellow]Nenhum arquivo de audio em '{pasta}'[/]")
+            return
+
+        # Buscar por termo (case insensitive)
+        termo_lower = termo.lower()
+        resultados = []
+        for f in files:
+            if (
+                termo_lower in f["filename"].lower()
+                or termo_lower in f["artist"].lower()
+                or termo_lower in f["album"].lower()
+            ):
+                resultados.append(f)
+
+        if not resultados:
+            console.print(f"  [yellow]Nenhum resultado para '{termo}'[/]")
+            return
+
+        table = Table(
+            title=f"Resultados para '{termo}'",
+            box=box.ROUNDED,
+            title_style="bold magenta",
+        )
+        table.add_column("#", style="dim", width=4, justify="right")
+        table.add_column("Artista", style="cyan bold")
+        table.add_column("Album", style="green")
+        table.add_column("Musica", style="white")
+        table.add_column("Tamanho", justify="right", style="yellow")
+
+        for i, f in enumerate(resultados, 1):
+            table.add_row(
+                str(i), f["artist"], f["album"],
+                f["filename"], format_size(f["size"]),
+            )
+
+        console.print()
+        console.print(table)
+        console.print(
+            f"\n  [green]{len(resultados)}[/] resultado(s) encontrado(s)"
+        )
+
+    # --------------------------------------------------------
+    # OPCAO 13: EDITOR DE TAGS / METADADOS
+    # --------------------------------------------------------
+
+    def opcao_editar_tags(self):
+        console.print(Panel(
+            "[bold]Editor de tags / metadados[/]\n"
+            "[dim]Edita tags ID3 dos arquivos MP3 (artista, album, genero, capa)[/]",
+            border_style="cyan",
+        ))
+
+        if not HAS_MUTAGEN:
+            console.print("[red]Biblioteca 'mutagen' nao instalada.[/]")
+            console.print("  Instale com: [cyan]pip install mutagen[/]")
+            return
+
+        default_path = self.config.get("default_scan_path", "./final")
+        console.print(f"  Pasta (Enter = {default_path}):")
+        pasta = input("  > ").strip() or default_path
+        pasta = os.path.expanduser(pasta)
+
+        if not os.path.isdir(pasta):
+            console.print(f"[red]Pasta '{pasta}' nao encontrada.[/]")
+            return
+
+        files = scan_audio_files(pasta)
+        if not files:
+            console.print(f"[yellow]Nenhum arquivo de audio em '{pasta}'[/]")
+            return
+
+        # Filtrar MP3/FLAC (suportados por mutagen)
+        supported = [
+            f for f in files
+            if f["filename"].lower().endswith((".mp3", ".flac"))
+        ]
+        if not supported:
+            console.print("[yellow]Nenhum arquivo MP3/FLAC encontrado.[/]")
+            return
+
+        # Ler tags atuais
+        table = Table(
+            title="Tags Atuais",
+            box=box.ROUNDED,
+            title_style="bold magenta",
+        )
+        table.add_column("#", style="dim", width=4, justify="right")
+        table.add_column("Arquivo", style="white", max_width=30)
+        table.add_column("Artista (tag)", style="cyan")
+        table.add_column("Album (tag)", style="green")
+        table.add_column("Titulo (tag)", style="yellow")
+        table.add_column("Genero", style="magenta")
+
+        file_tags = []
+        for i, f in enumerate(supported[:50], 1):
+            tags = self._read_tags(f["path"])
+            file_tags.append({"file": f, "tags": tags})
+            table.add_row(
+                str(i),
+                f["filename"][:30],
+                tags.get("artist", "") or "[dim]-[/]",
+                tags.get("album", "") or "[dim]-[/]",
+                tags.get("title", "") or "[dim]-[/]",
+                tags.get("genre", "") or "[dim]-[/]",
+            )
+
+        console.print()
+        console.print(table)
+        if len(supported) > 50:
+            console.print(
+                f"  [dim]... mostrando 50 de {len(supported)} arquivos[/]"
+            )
+
+        console.print("\n  Opcoes:")
+        console.print("  [cyan][1][/] Auto-preencher tags com dados do Deezer")
+        console.print("  [cyan][2][/] Editar tags manualmente (arquivo individual)")
+        console.print("  [cyan][3][/] Baixar e embutir capas de album")
+        console.print("  [cyan][0][/] Voltar")
+
+        choice = input("\n  > ").strip()
+
+        if choice == "1":
+            self._auto_fill_tags(supported)
+        elif choice == "2":
+            self._manual_edit_tags(file_tags)
+        elif choice == "3":
+            self._download_covers(supported)
+
+    def _read_tags(self, filepath):
+        """Le tags de um arquivo de audio via mutagen."""
+        tags = {}
+        try:
+            if filepath.lower().endswith(".mp3"):
+                audio = MP3(filepath)
+                id3 = audio.tags
+                if id3:
+                    tags["artist"] = str(id3.get("TPE1", ""))
+                    tags["album"] = str(id3.get("TALB", ""))
+                    tags["title"] = str(id3.get("TIT2", ""))
+                    tags["genre"] = str(id3.get("TCON", ""))
+                    tags["year"] = str(id3.get("TDRC", ""))
+                tags["bitrate"] = audio.info.bitrate // 1000 if audio.info.bitrate else 0
+                tags["duration"] = audio.info.length
+            elif filepath.lower().endswith(".flac"):
+                audio = FLAC(filepath)
+                if audio.tags:
+                    tags["artist"] = audio.tags.get("artist", [""])[0]
+                    tags["album"] = audio.tags.get("album", [""])[0]
+                    tags["title"] = audio.tags.get("title", [""])[0]
+                    tags["genre"] = audio.tags.get("genre", [""])[0]
+                tags["duration"] = audio.info.length
+        except Exception:
+            pass
+        return tags
+
+    def _auto_fill_tags(self, files):
+        """Preenche tags automaticamente com dados da estrutura de pastas + Deezer."""
+        console.print("\n  [dim]Preenchendo tags com dados do Deezer...[/]\n")
+
+        updated = 0
+        genre_cache = {}  # artista -> genero
+
+        with Progress(
+            SpinnerColumn("dots"),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(bar_width=30),
+            MofNCompleteColumn(),
+            console=console,
+        ) as progress:
+            task = progress.add_task(
+                "[cyan]Atualizando tags[/]", total=len(files),
+            )
+
+            for f in files:
+                progress.update(
+                    task,
+                    description=f"[cyan]{f['filename'][:40]}[/]",
+                )
+
+                try:
+                    if f["filename"].lower().endswith(".mp3"):
+                        try:
+                            id3 = ID3(f["path"])
+                        except ID3NoHeaderError:
+                            id3 = ID3()
+
+                        artist = f.get("artist", "")
+                        album = f.get("album", "")
+                        title = os.path.splitext(f["filename"])[0]
+                        title = re.sub(r"^\d+[\.\-\s]+\s*", "", title)
+
+                        if artist and artist != "Desconhecido":
+                            id3["TPE1"] = TPE1(encoding=3, text=[artist])
+                        if album and album != "Singles":
+                            id3["TALB"] = TALB(encoding=3, text=[album])
+                        if title:
+                            id3["TIT2"] = TIT2(encoding=3, text=[title])
+
+                        # Genero via Deezer (com cache por artista)
+                        if artist and artist != "Desconhecido":
+                            if artist not in genre_cache:
+                                genre, _ = self.get_artist_genre(artist)
+                                genre_cache[artist] = genre
+                            genre = genre_cache[artist]
+                            if genre:
+                                id3["TCON"] = TCON(encoding=3, text=[genre])
+
+                        id3.save(f["path"])
+                        updated += 1
+
+                except Exception as e:
+                    console.print(
+                        f"    [red]x[/] {f['filename']}: [dim]{e}[/]"
+                    )
+
+                progress.advance(task)
+
+        console.print(Panel(
+            f"[bold green]{updated}[/] arquivos atualizados",
+            border_style="green", padding=(0, 2),
+        ))
+
+    def _manual_edit_tags(self, file_tags):
+        """Edita tags de um arquivo individual."""
+        if not file_tags:
+            return
+
+        console.print("\n  Numero do arquivo para editar:")
+        try:
+            idx = int(input("  > ").strip()) - 1
+            if idx < 0 or idx >= len(file_tags):
+                console.print("[red]Indice invalido.[/]")
+                return
+        except ValueError:
+            console.print("[red]Numero invalido.[/]")
+            return
+
+        ft = file_tags[idx]
+        f = ft["file"]
+        tags = ft["tags"]
+
+        console.print(f"\n  Editando: [cyan]{f['filename']}[/]")
+        console.print(f"  Artista atual: [dim]{tags.get('artist', '-')}[/]")
+        console.print(f"  Album atual:   [dim]{tags.get('album', '-')}[/]")
+        console.print(f"  Titulo atual:  [dim]{tags.get('title', '-')}[/]")
+        console.print(f"  Genero atual:  [dim]{tags.get('genre', '-')}[/]")
+
+        console.print("\n  [dim]Enter para manter o valor atual[/]")
+        new_artist = input("  Artista: ").strip() or tags.get("artist", "")
+        new_album = input("  Album: ").strip() or tags.get("album", "")
+        new_title = input("  Titulo: ").strip() or tags.get("title", "")
+        new_genre = input("  Genero: ").strip() or tags.get("genre", "")
+
+        try:
+            if f["path"].lower().endswith(".mp3"):
+                try:
+                    id3 = ID3(f["path"])
+                except ID3NoHeaderError:
+                    id3 = ID3()
+
+                id3["TPE1"] = TPE1(encoding=3, text=[new_artist])
+                id3["TALB"] = TALB(encoding=3, text=[new_album])
+                id3["TIT2"] = TIT2(encoding=3, text=[new_title])
+                id3["TCON"] = TCON(encoding=3, text=[new_genre])
+                id3.save(f["path"])
+                console.print("  [green]Tags atualizadas![/]")
+            else:
+                console.print(
+                    "  [yellow]Edicao manual so suporta MP3 por enquanto.[/]"
+                )
+        except Exception as e:
+            console.print(f"  [red]Erro: {e}[/]")
+
+    def _download_covers(self, files):
+        """Baixa e embute capas de album nos arquivos MP3."""
+        console.print("\n  [dim]Buscando capas de album no Deezer...[/]\n")
+
+        # Agrupar por artista/album
+        albums_map = {}
+        for f in files:
+            key = (f["artist"], f["album"])
+            if key not in albums_map:
+                albums_map[key] = []
+            albums_map[key].append(f)
+
+        updated = 0
+
+        with Progress(
+            SpinnerColumn("dots"),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(bar_width=30),
+            MofNCompleteColumn(),
+            console=console,
+        ) as progress:
+            task = progress.add_task(
+                "[cyan]Capas[/]", total=len(albums_map),
+            )
+
+            for (artist, album), album_files in albums_map.items():
+                progress.update(
+                    task,
+                    description=f"[cyan]{artist}[/] - [green]{album}[/]",
+                )
+
+                cover_data = self._fetch_cover(artist, album)
+                if cover_data:
+                    for af in album_files:
+                        try:
+                            if af["path"].lower().endswith(".mp3"):
+                                try:
+                                    id3 = ID3(af["path"])
+                                except ID3NoHeaderError:
+                                    id3 = ID3()
+
+                                id3.delall("APIC")
+                                id3["APIC"] = APIC(
+                                    encoding=3,
+                                    mime="image/jpeg",
+                                    type=3,
+                                    desc="Cover",
+                                    data=cover_data,
+                                )
+                                id3.save(af["path"])
+                                updated += 1
+                        except Exception:
+                            pass
+
+                    # Salvar cover.jpg na pasta do album
+                    if album_files:
+                        cover_dir = os.path.dirname(album_files[0]["path"])
+                        cover_path = os.path.join(cover_dir, "cover.jpg")
+                        if not os.path.exists(cover_path):
+                            try:
+                                with open(cover_path, "wb") as cf:
+                                    cf.write(cover_data)
+                            except Exception:
+                                pass
+
+                progress.advance(task)
+                self.rate_limiter.wait()
+
+        console.print(Panel(
+            f"[bold green]{updated}[/] arquivos com capa atualizada",
+            border_style="green", padding=(0, 2),
+        ))
+
+    def _fetch_cover(self, artist_name, album_name):
+        """Busca capa do album no Deezer. Retorna bytes da imagem ou None."""
+        try:
+            resp = requests.get(
+                f"{DEEZER_API}/search/album",
+                params={"q": f"{artist_name} {album_name}", "limit": 1},
+                timeout=10,
+            )
+            albums = resp.json().get("data", [])
+            if not albums:
+                return None
+
+            cover_url = (
+                albums[0].get("cover_big")
+                or albums[0].get("cover_medium")
+            )
+            if not cover_url:
+                return None
+
+            img_resp = requests.get(cover_url, timeout=10)
+            if img_resp.status_code == 200:
+                return img_resp.content
+        except Exception:
+            pass
+        return None
+
+    # --------------------------------------------------------
+    # OPCAO 14: GERADOR DE PLAYLISTS M3U
+    # --------------------------------------------------------
+
+    def opcao_gerar_playlist(self):
+        console.print(Panel(
+            "[bold]Gerador de playlists M3U[/]\n"
+            "[dim]Cria arquivos .m3u para players de musica[/]",
+            border_style="cyan",
+        ))
+
+        default_path = self.config.get("default_scan_path", "./final")
+        console.print(f"  Pasta com musicas (Enter = {default_path}):")
+        pasta = input("  > ").strip() or default_path
+        pasta = os.path.expanduser(pasta)
+
+        if not os.path.isdir(pasta):
+            console.print(f"[red]Pasta '{pasta}' nao encontrada.[/]")
+            return
+
+        files = scan_audio_files(pasta)
+        if not files:
+            console.print(f"[yellow]Nenhum arquivo de audio em '{pasta}'[/]")
+            return
+
+        console.print(f"\n  [green]{len(files)}[/] musicas encontradas")
+
+        console.print("\n  Tipo de playlist:")
+        console.print("  [cyan][1][/] Todas as musicas")
+        console.print("  [cyan][2][/] Por artista (uma playlist por artista)")
+        console.print("  [cyan][3][/] Por album")
+        console.print("  [cyan][4][/] Shuffle (ordem aleatoria)")
+
+        choice = input("\n  > ").strip()
+
+        if choice == "1":
+            sorted_files = sorted(
+                files,
+                key=lambda f: (f["artist"], f["album"], f["filename"]),
+            )
+            name = input("  Nome (Enter = todas): ").strip() or "todas"
+            self._write_m3u(sorted_files, pasta, f"{name}.m3u")
+            console.print(f"  [green]Playlist '{name}.m3u' criada![/]")
+
+        elif choice == "2":
+            artists = {}
+            for f in files:
+                key = f["artist"]
+                if key not in artists:
+                    artists[key] = []
+                artists[key].append(f)
+
+            for artist_name, artist_files in sorted(artists.items()):
+                sorted_a = sorted(
+                    artist_files,
+                    key=lambda f: (f["album"], f["filename"]),
+                )
+                safe_name = sanitize_filename(artist_name)
+                self._write_m3u(sorted_a, pasta, f"{safe_name}.m3u")
+
+            console.print(
+                f"  [green]{len(artists)} playlists criadas "
+                f"(uma por artista)[/]"
+            )
+
+        elif choice == "3":
+            albums = {}
+            for f in files:
+                key = (f["artist"], f["album"])
+                if key not in albums:
+                    albums[key] = []
+                albums[key].append(f)
+
+            for (artist_name, album_name), album_files in sorted(
+                albums.items()
+            ):
+                sorted_a = sorted(
+                    album_files, key=lambda f: f["filename"],
+                )
+                safe_name = sanitize_filename(
+                    f"{artist_name} - {album_name}"
+                )
+                self._write_m3u(sorted_a, pasta, f"{safe_name}.m3u")
+
+            console.print(
+                f"  [green]{len(albums)} playlists criadas "
+                f"(uma por album)[/]"
+            )
+
+        elif choice == "4":
+            random.shuffle(files)
+            name = input("  Nome (Enter = shuffle): ").strip() or "shuffle"
+            self._write_m3u(files, pasta, f"{name}.m3u")
+            console.print(
+                f"  [green]Playlist shuffle '{name}.m3u' criada![/]"
+            )
+
+    def _write_m3u(self, files, base_dir, filename):
+        """Escreve arquivo M3U."""
+        m3u_path = os.path.join(base_dir, filename)
+        with open(m3u_path, "w", encoding="utf-8") as f:
+            f.write("#EXTM3U\n")
+            for af in files:
+                rel_path = os.path.relpath(af["path"], base_dir)
+                duration = -1
+                if HAS_MUTAGEN:
+                    try:
+                        tags = self._read_tags(af["path"])
+                        if tags.get("duration"):
+                            duration = int(tags["duration"])
+                    except Exception:
+                        pass
+                artist = af.get("artist", "")
+                title = os.path.splitext(af["filename"])[0]
+                title = re.sub(r"^\d+[\.\-\s]+\s*", "", title)
+                f.write(f"#EXTINF:{duration},{artist} - {title}\n")
+                f.write(f"{rel_path}\n")
+
+    # --------------------------------------------------------
+    # OPCAO 15: VERIFICADOR DE QUALIDADE
+    # --------------------------------------------------------
+
+    def opcao_verificar_qualidade(self):
+        console.print(Panel(
+            "[bold]Verificador de qualidade de audio[/]\n"
+            "[dim]Analisa bitrate, duracao e integridade[/]",
+            border_style="cyan",
+        ))
+
+        if not HAS_MUTAGEN:
+            console.print("[red]Biblioteca 'mutagen' nao instalada.[/]")
+            console.print("  Instale com: [cyan]pip install mutagen[/]")
+            return
+
+        default_path = self.config.get("default_scan_path", "./final")
+        console.print(f"  Pasta (Enter = {default_path}):")
+        pasta = input("  > ").strip() or default_path
+        pasta = os.path.expanduser(pasta)
+
+        if not os.path.isdir(pasta):
+            console.print(f"[red]Pasta '{pasta}' nao encontrada.[/]")
+            return
+
+        files = scan_audio_files(pasta)
+        if not files:
+            console.print(f"[yellow]Nenhum arquivo de audio em '{pasta}'[/]")
+            return
+
+        console.print(f"\n  Analisando [green]{len(files)}[/] arquivos...\n")
+
+        results = []
+        problemas = 0
+        min_kbps = self.config.get("qualidade_minima_kbps", 192)
+
+        with Progress(
+            SpinnerColumn("dots"),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(bar_width=30),
+            MofNCompleteColumn(),
+            console=console,
+        ) as progress:
+            task = progress.add_task(
+                "[cyan]Analisando[/]", total=len(files),
+            )
+
+            for f in files:
+                progress.update(
+                    task,
+                    description=f"[cyan]{f['filename'][:40]}[/]",
+                )
+
+                info = {
+                    "file": f,
+                    "bitrate": 0,
+                    "duration": 0,
+                    "valid": True,
+                    "issue": "",
+                }
+
+                try:
+                    tags = self._read_tags(f["path"])
+                    info["bitrate"] = tags.get("bitrate", 0)
+                    info["duration"] = tags.get("duration", 0)
+
+                    if info["bitrate"] and info["bitrate"] < min_kbps:
+                        info["issue"] = (
+                            f"Baixa qualidade ({info['bitrate']}kbps)"
+                        )
+                        problemas += 1
+                    elif info["duration"] and info["duration"] < 30:
+                        info["issue"] = (
+                            f"Muito curto ({format_duration(info['duration'])})"
+                        )
+                        problemas += 1
+                    elif f["size"] < 500 * 1024:
+                        info["issue"] = "Arquivo muito pequeno"
+                        problemas += 1
+                except Exception as e:
+                    info["valid"] = False
+                    info["issue"] = f"Erro: {str(e)[:50]}"
+                    problemas += 1
+
+                results.append(info)
+                progress.advance(task)
+
+        # Tabela
+        table = Table(
+            title="Analise de Qualidade",
+            box=box.ROUNDED,
+            title_style="bold magenta",
+        )
+        table.add_column("#", style="dim", width=4, justify="right")
+        table.add_column("Arquivo", style="white", max_width=35)
+        table.add_column("Artista", style="cyan", max_width=20)
+        table.add_column("Bitrate", justify="center")
+        table.add_column("Duracao", justify="center", style="dim")
+        table.add_column("Tamanho", justify="right", style="yellow")
+        table.add_column("Status", justify="center")
+
+        problem_results = [r for r in results if r["issue"]]
+        ok_results = [r for r in results if not r["issue"]]
+
+        for i, r in enumerate(problem_results, 1):
+            f = r["file"]
+            br = f"{r['bitrate']}k" if r["bitrate"] else "-"
+            dur = format_duration(r["duration"]) if r["duration"] else "-"
+            table.add_row(
+                str(i), f["filename"][:35], f["artist"][:20],
+                br, dur, format_size(f["size"]),
+                f"[red]{r['issue']}[/]",
+            )
+
+        if problem_results and ok_results:
+            table.add_section()
+
+        for i, r in enumerate(
+            ok_results[:20], len(problem_results) + 1,
+        ):
+            f = r["file"]
+            br = f"{r['bitrate']}k" if r["bitrate"] else "-"
+            dur = format_duration(r["duration"]) if r["duration"] else "-"
+            table.add_row(
+                str(i), f["filename"][:35], f["artist"][:20],
+                br, dur, format_size(f["size"]),
+                "[green]OK[/]",
+            )
+
+        if len(ok_results) > 20:
+            console.print(
+                f"  [dim]... +{len(ok_results) - 20} arquivos OK[/]"
+            )
+
+        console.print()
+        console.print(table)
+
+        total_size = sum(f["size"] for f in files)
+        br_count = sum(1 for r in results if r["bitrate"])
+        avg_bitrate = 0
+        if br_count:
+            avg_bitrate = sum(r["bitrate"] for r in results) / br_count
+
+        console.print(Panel(
+            f"[bold]{len(files)}[/] arquivos  |  "
+            f"[bold yellow]{format_size(total_size)}[/]\n"
+            f"Bitrate medio: [cyan]{avg_bitrate:.0f} kbps[/]  |  "
+            f"Problemas: "
+            f"[{'red' if problemas else 'green'}]{problemas}[/]",
+            border_style="blue", padding=(0, 2),
+        ))
+
+    # --------------------------------------------------------
+    # OPCAO 16: BUSCAR LETRAS DE MUSICAS
+    # --------------------------------------------------------
+
+    def opcao_letras(self):
+        console.print(Panel(
+            "[bold]Buscar letras de musicas[/]\n"
+            "[dim]Busca online (Vagalume / lyrics.ovh)[/]",
+            border_style="cyan",
+        ))
+
+        artista = input("  Artista: ").strip()
+        if not artista:
+            console.print("[yellow]Cancelado.[/]")
+            return
+
+        musica = input("  Musica: ").strip()
+        if not musica:
+            console.print("[yellow]Cancelado.[/]")
+            return
+
+        console.print(
+            f"\n  [dim]Buscando letra de '{artista} - {musica}'...[/]"
+        )
+
+        letra = self._buscar_letra_vagalume(artista, musica)
+        if not letra:
+            letra = self._buscar_letra_lyricsovh(artista, musica)
+
+        if not letra:
+            console.print("[red]Letra nao encontrada.[/]")
+            return
+
+        console.print()
+        console.print(Panel(
+            f"[bold cyan]{artista}[/] - [bold green]{musica}[/]\n\n"
+            f"{letra}",
+            border_style="blue",
+            padding=(1, 2),
+        ))
+
+        console.print("\n  Salvar como .txt? ([cyan]s[/]/n)")
+        if input("  > ").strip().lower() in ("s", "sim", "y", "yes"):
+            safe_name = sanitize_filename(f"{artista} - {musica}")
+            txt_path = f"{safe_name}.txt"
+            with open(txt_path, "w", encoding="utf-8") as f:
+                f.write(f"{artista} - {musica}\n")
+                f.write("=" * 40 + "\n\n")
+                f.write(letra)
+            console.print(f"  [green]Salvo em '{txt_path}'[/]")
+
+    def _buscar_letra_vagalume(self, artista, musica):
+        """Busca letra no Vagalume (API brasileira)."""
+        try:
+            resp = requests.get(
+                "https://api.vagalume.com.br/search.php",
+                params={"art": artista, "mus": musica},
+                timeout=10,
+            )
+            data = resp.json()
+            mus = data.get("mus", [])
+            if mus:
+                return mus[0].get("text", "")
+        except Exception:
+            pass
+        return None
+
+    def _buscar_letra_lyricsovh(self, artista, musica):
+        """Busca letra no lyrics.ovh (fallback internacional)."""
+        try:
+            from urllib.parse import quote
+            resp = requests.get(
+                f"https://api.lyrics.ovh/v1/{quote(artista)}/{quote(musica)}",
+                timeout=10,
+            )
+            if resp.status_code == 200:
+                return resp.json().get("lyrics", "")
+        except Exception:
+            pass
+        return None
+
+    # --------------------------------------------------------
+    # OPCAO 17: HISTORICO E ESTATISTICAS
+    # --------------------------------------------------------
+
+    def opcao_historico(self):
+        console.print(Panel(
+            "[bold]Historico e estatisticas[/]\n"
+            "[dim]Mostra historico de downloads e uso[/]",
+            border_style="cyan",
+        ))
+
+        historico = load_historico()
+        downloads = historico.get("downloads", [])
+        stats = historico.get("stats", {})
+
+        if not downloads:
+            console.print(
+                "  [yellow]Nenhum download registrado ainda.[/]"
+            )
+            console.print(
+                "  [dim]O historico comeca a ser registrado "
+                "a partir de agora.[/]"
+            )
+            return
+
+        total = stats.get("total_downloads", 0)
+        total_bytes = stats.get("total_bytes", 0)
+
+        # Downloads por artista
+        artist_counter = Counter()
+        for d in downloads:
+            if d.get("status") == "ok":
+                artist_counter[d.get("artist", "Desconhecido")] += 1
+
+        # Downloads por mes
+        month_counter = Counter()
+        for d in downloads:
+            ts = d.get("timestamp", "")
+            if ts:
+                month_counter[ts[:7]] += 1
+
+        # Tabela artistas mais baixados
+        table = Table(
+            title="Artistas Mais Baixados",
+            box=box.ROUNDED,
+            title_style="bold magenta",
+        )
+        table.add_column("#", style="dim", width=4, justify="right")
+        table.add_column("Artista", style="cyan bold")
+        table.add_column("Downloads", justify="center", style="green")
+
+        for i, (name, count) in enumerate(
+            artist_counter.most_common(15), 1,
+        ):
+            table.add_row(str(i), name, str(count))
+
+        console.print()
+        console.print(table)
+
+        # Downloads recentes
+        table2 = Table(
+            title="Downloads Recentes",
+            box=box.ROUNDED,
+            title_style="bold",
+        )
+        table2.add_column("Data", style="dim", width=16)
+        table2.add_column("Artista", style="cyan")
+        table2.add_column("Musica", style="green")
+        table2.add_column("Status", justify="center")
+
+        for d in reversed(downloads[-15:]):
+            ts = d.get("timestamp", "")[:16].replace("T", " ")
+            status = (
+                "[green]OK[/]"
+                if d.get("status") == "ok"
+                else "[red]FALHA[/]"
+            )
+            table2.add_row(
+                ts, d.get("artist", ""),
+                d.get("title", ""), status,
+            )
+
+        console.print()
+        console.print(table2)
+
+        console.print(Panel(
+            f"[bold]{total}[/] downloads totais  |  "
+            f"[bold yellow]{format_size(total_bytes)}[/]\n"
+            f"[bold]{len(artist_counter)}[/] artistas unicos  |  "
+            f"[bold]{len(month_counter)}[/] meses de uso",
+            border_style="blue", padding=(0, 2),
+        ))
+
+        console.print("\n  [dim][L] Limpar historico | [Enter] Voltar[/]")
+        if input("  > ").strip().lower() == "l":
+            save_historico({
+                "downloads": [],
+                "stats": {"total_downloads": 0, "total_bytes": 0},
+            })
+            console.print("  [green]Historico limpo.[/]")
+
+    # --------------------------------------------------------
+    # OPCAO 18: BAIXAR POR LINK DIRETO
+    # --------------------------------------------------------
+
+    def opcao_baixar_link(self):
+        console.print(Panel(
+            "[bold]Baixar por link direto[/]\n"
+            "[dim]Cole uma URL do Deezer ou YouTube[/]",
+            border_style="cyan",
+        ))
+
+        url = input("  URL: ").strip()
+        if not url:
+            console.print("[yellow]Cancelado.[/]")
+            return
+
+        if "deezer.com" in url and "/album/" in url:
+            self._baixar_deezer_album(url)
+        elif "deezer.com" in url and "/track/" in url:
+            self._baixar_deezer_track(url)
+        elif "youtube.com" in url or "youtu.be" in url:
+            self._baixar_youtube(url)
+        elif "spotify.com" in url:
+            console.print(
+                "[yellow]Links do Spotify nao sao suportados "
+                "diretamente.[/]"
+            )
+            console.print(
+                "  [dim]Dica: copie o nome do album e use a opcao 5 "
+                "para buscar no Deezer.[/]"
+            )
+        else:
+            console.print("[yellow]URL nao reconhecida.[/]")
+            console.print(
+                "  [dim]Suportados: Deezer (album/track), YouTube[/]"
+            )
+
+    def _baixar_deezer_album(self, url):
+        """Baixa album completo pelo link do Deezer."""
+        match = re.search(r"/album/(\d+)", url)
+        if not match:
+            console.print("[red]URL de album invalida.[/]")
+            return
+
+        album_id = match.group(1)
+        console.print(
+            f"  [dim]Buscando album {album_id} no Deezer...[/]"
+        )
+
+        try:
+            resp = requests.get(
+                f"{DEEZER_API}/album/{album_id}", timeout=10,
+            )
+            data = resp.json()
+        except Exception as e:
+            console.print(f"[red]Erro: {e}[/]")
+            return
+
+        artist_name = data.get("artist", {}).get("name", "Desconhecido")
+        album_name = data.get("title", "Album")
+        nb_tracks = data.get("nb_tracks", 0)
+
+        console.print(
+            f"\n  [cyan]{artist_name}[/] - [green]{album_name}[/] "
+            f"({nb_tracks} faixas)"
+        )
+        console.print("  Baixar? ([cyan]s[/]/n)")
+        if input("  > ").strip().lower() not in ("s", "sim", "y", "yes"):
+            console.print("[yellow]Cancelado.[/]")
+            return
+
+        ok, fail = self.download_album_by_deezer_url(
+            url, artist_name, album_name,
+        )
+        self._show_download_result(ok, fail)
+
+    def _baixar_deezer_track(self, url):
+        """Baixa uma faixa pelo link do Deezer."""
+        match = re.search(r"/track/(\d+)", url)
+        if not match:
+            console.print("[red]URL de track invalida.[/]")
+            return
+
+        track_id = match.group(1)
+        console.print(
+            f"  [dim]Buscando track {track_id} no Deezer...[/]"
+        )
+
+        try:
+            resp = requests.get(
+                f"{DEEZER_API}/track/{track_id}", timeout=10,
+            )
+            data = resp.json()
+        except Exception as e:
+            console.print(f"[red]Erro: {e}[/]")
+            return
+
+        artist_name = data.get("artist", {}).get("name", "Desconhecido")
+        title = data.get("title", "?")
+        album_name = data.get("album", {}).get("title", "Singles")
+
+        console.print(
+            f"\n  [cyan]{artist_name}[/] - [green]{title}[/] "
+            f"(album: {album_name})"
+        )
+        console.print("  Baixar? ([cyan]s[/]/n)")
+        if input("  > ").strip().lower() not in ("s", "sim", "y", "yes"):
+            console.print("[yellow]Cancelado.[/]")
+            return
+
+        dl_tracks = [{"title": title, "number": 1, "album": album_name}]
+        ok, fail = self.download_tracks_with_progress(
+            dl_tracks, artist_name,
+        )
+        self._show_download_result(ok, fail)
+
+    def _baixar_youtube(self, url):
+        """Baixa audio de um video/playlist do YouTube."""
+        console.print(f"\n  [dim]Baixando via yt-dlp...[/]")
+        console.print("  Baixar como:")
+        console.print("  [cyan][1][/] Musica unica (extrair audio)")
+        console.print("  [cyan][2][/] Playlist completa")
+
+        choice = input("  > ").strip()
+
+        pasta_dest = os.path.join(self.output_dir, "YouTube")
+        os.makedirs(pasta_dest, exist_ok=True)
+
+        output_template = os.path.join(
+            pasta_dest, "%(title)s.%(ext)s",
+        )
+        cmd = [
+            YTDLP_PATH,
+            "-x", "--audio-format", self.formato,
+            "--audio-quality", "0",
+            "-o", output_template,
+            "--progress", "--newline",
+        ]
+        if choice != "2":
+            cmd.append("--no-playlist")
+        cmd.append(url)
+
+        console.print(f"\n  Salvando em [cyan]{pasta_dest}[/]\n")
+
+        try:
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+            )
+            for line in proc.stdout:
+                line = line.strip()
+                if "[download]" in line:
+                    console.print(f"  [dim]{line}[/]")
+                elif "[ExtractAudio]" in line:
+                    console.print(f"  [green]{line}[/]")
+
+            proc.wait(timeout=600)
+
+            if proc.returncode == 0:
+                console.print(Panel(
+                    f"[bold green]Download completo![/]\n"
+                    f"[dim]{pasta_dest}[/]",
+                    border_style="green", padding=(0, 2),
+                ))
+            else:
+                console.print(
+                    f"[red]yt-dlp retornou codigo "
+                    f"{proc.returncode}[/]"
+                )
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            console.print("[red]Timeout (10 min)[/]")
+        except Exception as e:
+            console.print(f"[red]Erro: {e}[/]")
+
+    # --------------------------------------------------------
+    # OPCAO 19: SINCRONIZAR COM PENDRIVE
+    # --------------------------------------------------------
+
+    def opcao_sincronizar(self):
+        console.print(Panel(
+            "[bold]Sincronizar com pendrive / pasta externa[/]\n"
+            "[dim]Compara e copia apenas as diferencas[/]",
+            border_style="cyan",
+        ))
+
+        default_path = self.config.get("default_scan_path", "./final")
+        console.print(
+            f"  Pasta origem (local) (Enter = {default_path}):"
+        )
+        origem = input("  > ").strip() or default_path
+        origem = os.path.expanduser(origem)
+
+        if not os.path.isdir(origem):
+            console.print(f"[red]Pasta '{origem}' nao encontrada.[/]")
+            return
+
+        default_export = self.config.get("default_export_path", "")
+        hint = f" (Enter = {default_export})" if default_export else ""
+        console.print(
+            f"  Pasta destino (pendrive){hint}:"
+        )
+        destino = input("  > ").strip() or default_export
+        if not destino:
+            console.print("[yellow]Cancelado.[/]")
+            return
+        destino = os.path.expanduser(destino)
+
+        if not os.path.isdir(destino):
+            console.print(
+                f"  Criar pasta [cyan]{destino}[/]? ([cyan]s[/]/n)"
+            )
+            if input("  > ").strip().lower() in (
+                "s", "sim", "y", "yes",
+            ):
+                try:
+                    os.makedirs(destino, exist_ok=True)
+                except OSError as e:
+                    console.print(f"[red]Erro: {e}[/]")
+                    return
+            else:
+                console.print("[yellow]Cancelado.[/]")
+                return
+
+        console.print("\n  [dim]Analisando pastas...[/]")
+
+        files_origem = scan_audio_files(origem)
+        files_destino = scan_audio_files(destino)
+
+        # Comparar por caminho relativo
+        set_origem = {}
+        for f in files_origem:
+            rel = os.path.relpath(f["path"], origem)
+            set_origem[rel] = f
+
+        set_destino = {}
+        for f in files_destino:
+            rel = os.path.relpath(f["path"], destino)
+            set_destino[rel] = f
+
+        novos = [r for r in set_origem if r not in set_destino]
+        removidos = [r for r in set_destino if r not in set_origem]
+        comuns = [r for r in set_origem if r in set_destino]
+
+        novos_size = sum(set_origem[r]["size"] for r in novos)
+
+        console.print(
+            f"\n  Origem:  [green]{len(files_origem)}[/] musicas"
+        )
+        console.print(
+            f"  Destino: [green]{len(files_destino)}[/] musicas"
+        )
+        console.print()
+        console.print(
+            f"  [green]+{len(novos)}[/] novas ({format_size(novos_size)})"
+        )
+        console.print(
+            f"  [red]-{len(removidos)}[/] removidas da origem"
+        )
+        console.print(f"  [dim]={len(comuns)}[/] em comum")
+
+        if not novos and not removidos:
+            console.print(Panel(
+                "[bold green]Tudo sincronizado![/]",
+                border_style="green", padding=(0, 2),
+            ))
+            return
+
+        console.print("\n  Acoes:")
+        if novos:
+            console.print(
+                f"  [cyan][1][/] Copiar {len(novos)} novas "
+                f"para destino"
+            )
+        if removidos:
+            console.print(
+                f"  [cyan][2][/] Remover {len(removidos)} extras "
+                f"do destino"
+            )
+        if novos and removidos:
+            console.print(
+                f"  [cyan][3][/] Ambos (sincronizar completo)"
+            )
+        console.print("  [cyan][0][/] Cancelar")
+
+        acao = input("\n  > ").strip()
+
+        copiar = acao in ("1", "3")
+        remover = acao in ("2", "3")
+
+        if not copiar and not remover:
+            console.print("[yellow]Cancelado.[/]")
+            return
+
+        # Copiar novos
+        if copiar and novos:
+            console.print(
+                f"\n  [dim]Copiando {len(novos)} musicas...[/]"
+            )
+            ok_copy = 0
+
+            with Progress(
+                SpinnerColumn("dots"),
+                TextColumn(
+                    "[progress.description]{task.description}"
+                ),
+                BarColumn(bar_width=30),
+                MofNCompleteColumn(),
+                console=console,
+            ) as progress:
+                task = progress.add_task(
+                    "[cyan]Copiando[/]", total=len(novos),
+                )
+
+                for rel in novos:
+                    f = set_origem[rel]
+                    dest_path = os.path.join(destino, rel)
+                    dest_dir = os.path.dirname(dest_path)
+
+                    progress.update(
+                        task,
+                        description=(
+                            f"[cyan]{os.path.basename(rel)}[/]"
+                        ),
+                    )
+
+                    try:
+                        os.makedirs(dest_dir, exist_ok=True)
+                        shutil.copy2(f["path"], dest_path)
+                        ok_copy += 1
+                    except Exception as e:
+                        console.print(
+                            f"    [red]x[/] {rel}: [dim]{e}[/]"
+                        )
+
+                    progress.advance(task)
+
+            console.print(
+                f"  [green]{ok_copy}[/] musicas copiadas"
+            )
+
+        # Remover extras
+        if remover and removidos:
+            console.print(
+                f"\n  [bold yellow]ATENCAO:[/] Remover "
+                f"{len(removidos)} musicas do destino? ([cyan]s[/]/n)"
+            )
+            if input("  > ").strip().lower() in (
+                "s", "sim", "y", "yes",
+            ):
+                ok_del = 0
+                for rel in removidos:
+                    f = set_destino[rel]
+                    try:
+                        os.remove(f["path"])
+                        ok_del += 1
+                    except Exception:
+                        pass
+
+                cleanup_empty_dirs(destino)
+                console.print(
+                    f"  [green]{ok_del}[/] musicas removidas"
+                )
+
+        console.print(Panel(
+            f"[bold green]Sincronizacao concluida![/]\n"
+            f"[dim]{os.path.abspath(destino)}[/]",
+            border_style="green", padding=(0, 2),
+        ))
+
+    # --------------------------------------------------------
     # HELPERS UI
     # --------------------------------------------------------
 
@@ -2195,18 +3464,29 @@ class ClienteMusica:
             border_style="blue",
             padding=(0, 2),
         ))
-        console.print("  [cyan][1][/] Ver artistas do Top 50 Brasil")
-        console.print("  [cyan][2][/] Ver os mais frequentes no Top 50")
-        console.print("  [cyan][3][/] Baixar albuns dos mais frequentes")
-        console.print("  [cyan][4][/] Baixar top musicas de um artista")
-        console.print("  [cyan][5][/] Buscar albuns de um artista (metricas)")
-        console.print("  [cyan][6][/] Top musicas do momento (Brasil)")
-        console.print("  [cyan][7][/] Exportar musicas (mover para outra pasta)")
-        console.print("  [cyan][8][/] Organizar pasta de musicas")
-        console.print("  [cyan][9][/] Resumo da pasta (artistas/musicas/disco)")
+        console.print("  [dim]───── Descobrir ─────[/]")
+        console.print("  [cyan][ 1][/] Ver artistas do Top 50 Brasil")
+        console.print("  [cyan][ 2][/] Ver os mais frequentes no Top 50")
+        console.print("  [cyan][ 3][/] Baixar albuns dos mais frequentes")
+        console.print("  [cyan][ 4][/] Baixar top musicas de um artista")
+        console.print("  [cyan][ 5][/] Buscar albuns de um artista (metricas)")
+        console.print("  [cyan][ 6][/] Top musicas do momento (Brasil)")
+        console.print("  [dim]───── Gerenciamento ─────[/]")
+        console.print("  [cyan][ 7][/] Exportar musicas (mover para outra pasta)")
+        console.print("  [cyan][ 8][/] Organizar pasta de musicas")
+        console.print("  [cyan][ 9][/] Resumo da pasta (artistas/musicas/disco)")
         console.print("  [cyan][10][/] Classificar por genero (Deezer)")
         console.print("  [cyan][11][/] Exportar shuffle (caixa de som)")
-        console.print("  [dim][0] Sair[/]")
+        console.print("  [cyan][12][/] Buscar na biblioteca local")
+        console.print("  [cyan][13][/] Sincronizar com pendrive")
+        console.print("  [dim]───── Ferramentas ─────[/]")
+        console.print("  [cyan][14][/] Editor de tags / metadados")
+        console.print("  [cyan][15][/] Gerador de playlists M3U")
+        console.print("  [cyan][16][/] Verificar qualidade dos arquivos")
+        console.print("  [cyan][17][/] Buscar letras de musicas")
+        console.print("  [cyan][18][/] Baixar por link direto (Deezer/YouTube)")
+        console.print("  [cyan][19][/] Historico e estatisticas")
+        console.print("  [dim][ 0] Sair[/]")
         console.print()
 
     def menu_loop(self):
@@ -2241,6 +3521,14 @@ class ClienteMusica:
             "9": self.opcao_resumo,
             "10": self.opcao_genero,
             "11": self.opcao_shuffle_export,
+            "12": self.opcao_buscar_local,
+            "13": self.opcao_sincronizar,
+            "14": self.opcao_editar_tags,
+            "15": self.opcao_gerar_playlist,
+            "16": self.opcao_verificar_qualidade,
+            "17": self.opcao_letras,
+            "18": self.opcao_baixar_link,
+            "19": self.opcao_historico,
         }
 
         while True:
@@ -2266,7 +3554,123 @@ class ClienteMusica:
 # ============================================================
 
 def main():
+    parser = argparse.ArgumentParser(
+        description="Cliente de musicas - Top 50 Brasil",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""Exemplos:
+  python clienteMusica.py                          # Menu interativo
+  python clienteMusica.py --resumo ./final         # Resumo rapido da pasta
+  python clienteMusica.py --shuffle /Volumes/USB   # Shuffle no pendrive
+  python clienteMusica.py --buscar ./final pagode  # Buscar na biblioteca
+  python clienteMusica.py --baixar URL             # Baixar por link direto
+        """,
+    )
+    parser.add_argument(
+        "--resumo", metavar="PASTA",
+        help="Mostra resumo rapido da pasta e sai",
+    )
+    parser.add_argument(
+        "--shuffle", metavar="PASTA",
+        help="Faz shuffle in-place na pasta e sai",
+    )
+    parser.add_argument(
+        "--buscar", nargs=2, metavar=("PASTA", "TERMO"),
+        help="Busca na biblioteca local e sai",
+    )
+    parser.add_argument(
+        "--baixar", metavar="URL",
+        help="Baixa por link direto (Deezer/YouTube) e sai",
+    )
+
+    args = parser.parse_args()
+
     cliente = ClienteMusica()
+
+    # ── Modo CLI direto ──
+    if args.resumo:
+        pasta = os.path.expanduser(args.resumo)
+        if not os.path.isdir(pasta):
+            console.print(f"[red]Pasta '{pasta}' nao encontrada.[/]")
+            return
+        files = scan_audio_files(pasta)
+        if not files:
+            console.print(f"[yellow]Nenhum arquivo em '{pasta}'[/]")
+            return
+        artists = {}
+        for f in files:
+            key = f["artist"]
+            if key not in artists:
+                artists[key] = {"albums": set(), "tracks": 0, "size": 0}
+            artists[key]["albums"].add(f["album"])
+            artists[key]["tracks"] += 1
+            artists[key]["size"] += f["size"]
+
+        table = Table(box=box.ROUNDED, title_style="bold")
+        table.add_column("Artista", style="cyan bold")
+        table.add_column("Albuns", justify="center", style="green")
+        table.add_column("Musicas", justify="center")
+        table.add_column("Tamanho", justify="right", style="yellow")
+        for name, info in sorted(
+            artists.items(),
+            key=lambda x: x[1]["tracks"],
+            reverse=True,
+        ):
+            table.add_row(
+                name, str(len(info["albums"])),
+                str(info["tracks"]), format_size(info["size"]),
+            )
+        console.print(table)
+        total_size = sum(a["size"] for a in artists.values())
+        console.print(
+            f"\n  {len(artists)} artistas | {len(files)} musicas | "
+            f"{format_size(total_size)}"
+        )
+        return
+
+    if args.shuffle:
+        cliente._shuffle_in_place(
+            pasta_preenchida=os.path.expanduser(args.shuffle),
+        )
+        return
+
+    if args.buscar:
+        pasta, termo = args.buscar
+        pasta = os.path.expanduser(pasta)
+        if not os.path.isdir(pasta):
+            console.print(f"[red]Pasta '{pasta}' nao encontrada.[/]")
+            return
+        files = scan_audio_files(pasta)
+        termo_lower = termo.lower()
+        resultados = [
+            f for f in files
+            if termo_lower in f["filename"].lower()
+            or termo_lower in f["artist"].lower()
+            or termo_lower in f["album"].lower()
+        ]
+        if not resultados:
+            console.print(f"[yellow]Nenhum resultado para '{termo}'[/]")
+            return
+        for f in resultados:
+            console.print(
+                f"  [cyan]{f['artist']}[/] / "
+                f"[green]{f['album']}[/] / {f['filename']}"
+            )
+        console.print(f"\n  {len(resultados)} resultado(s)")
+        return
+
+    if args.baixar:
+        url = args.baixar
+        if "deezer.com" in url and "/album/" in url:
+            cliente._baixar_deezer_album(url)
+        elif "deezer.com" in url and "/track/" in url:
+            cliente._baixar_deezer_track(url)
+        elif "youtube.com" in url or "youtu.be" in url:
+            cliente._baixar_youtube(url)
+        else:
+            console.print("[red]URL nao reconhecida.[/]")
+        return
+
+    # ── Modo interativo (menu) ──
     try:
         cliente.menu_loop()
     except KeyboardInterrupt:

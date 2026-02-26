@@ -111,10 +111,9 @@ def load_resultado(filepath):
 
 def sanitize_filename(name):
     """Remove caracteres invalidos para nome de pasta/arquivo."""
-    invalid = '<>:"/\\|?*'
-    for c in invalid:
-        name = name.replace(c, "")
-    return name.strip()
+    # Canonical em utils.py, mantido aqui para compatibilidade de import
+    from utils import sanitize_filename as _sf
+    return _sf(name)
 
 
 # ============================================================
